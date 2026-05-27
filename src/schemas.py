@@ -20,3 +20,18 @@ class Commodity(CommodityBase):
     id: int
     class Config:
         from_attributes = True
+
+# schema for incoming daily price payload
+class DailyPriceCreate(BaseModel):
+    date: date
+    commodity_id: int
+    location_id: int
+    price_local: float
+    exchange_rate_to_usd: float
+
+# response schema for daily price records
+class DailyPrice(DailyPriceCreate):
+    id: int
+    price_usd: float
+    class Config:
+        from_attributes = True
