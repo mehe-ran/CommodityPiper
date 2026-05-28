@@ -23,3 +23,12 @@ def create_daily_price(db: Session, price_schema: schemas.DailyPriceCreate):
     db.commit()
     db.refresh(db_price)
     return db_price
+
+# fetch daily prices with optional commodity or location filtering
+def get_daily_prices(db: Session, commodity_id: int = None, location_id: int = None, skip: int = 0, limit: int = 100):
+    query = db.query(models.DailyPrice)
+    if commodity_id:
+        query = query.filter(models.DailyPrice.commodity_id == commodity_id)
+    if location_id:
+        query = query.filter(models.DailyPrice.location_id == location_id)
+    return query.offset(skip).limit(limit).all()
