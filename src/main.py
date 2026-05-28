@@ -33,3 +33,14 @@ def read_commodities(skip: int = 0, limit: int = 100, db: Session = Depends(get_
 @app.post("/prices/", response_model=schemas.DailyPrice)
 def create_price_record(price: schemas.DailyPriceCreate, db: Session = Depends(get_db)):
     return crud.create_daily_price(db=db, price_schema=price)
+
+# endpoint to query historical daily price records
+@app.get("/prices/", response_model=List[schemas.DailyPrice])
+def read_daily_prices(
+    commodity_id: int = None,
+    location_id: int = None,
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db)
+):
+    return crud.get_daily_prices(db, commodity_id=commodity_id, location_id=location_id, skip=skip, limit=limit)
