@@ -32,3 +32,19 @@ def get_daily_prices(db: Session, commodity_id: int = None, location_id: int = N
     if location_id:
         query = query.filter(models.DailyPrice.location_id == location_id)
     return query.offset(skip).limit(limit).all()
+
+# insert a new location into the dimension table
+def create_location(db: Session, location: schemas.LocationCreate):
+    db_location = models.Location(country=location.country, currency=location.currency)
+    db.add(db_location)
+    db.commit()
+    db.refresh(db_location)
+    return db_location
+
+# insert a new commodity into the dimension table
+def create_commodity(db: Session, commodity: schemas.CommodityCreate):
+    db_commodity = models.Commodity(name=commodity.name, category=commodity.category)
+    db.add(db_commodity)
+    db.commit()
+    db.refresh(db_commodity)
+    return db_commodity

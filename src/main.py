@@ -24,10 +24,20 @@ def read_root():
 def read_locations(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return crud.get_locations(db, skip=skip, limit=limit)
 
+# endpoint to add a new market location dynamically
+@app.post("/locations/", response_model=schemas.Location)
+def create_location(location: schemas.LocationCreate, db: Session = Depends(get_db)):
+    return crud.create_location(db=db, location=location)
+
 # endpoint to fetch commodities
 @app.get("/commodities/", response_model=List[schemas.Commodity])
 def read_commodities(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return crud.get_commodities(db, skip=skip, limit=limit)
+
+# endpoint to add a new commodity dynamically
+@app.post("/commodities/", response_model=schemas.Commodity)
+def create_commodity(commodity: schemas.CommodityCreate, db: Session = Depends(get_db)):
+    return crud.create_commodity(db=db, commodity=commodity)
 
 # endpoint to ingest daily market price data
 @app.post("/prices/", response_model=schemas.DailyPrice)

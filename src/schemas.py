@@ -35,3 +35,10 @@ class DailyPrice(DailyPriceCreate):
     price_usd: float
     class Config:
         from_attributes = True
+
+# creation schemas inheriting base attributes
+class LocationCreate(LocationBase):
+    pass
+
+class CommodityCreate(CommodityBase):
+    pass
