@@ -2,74 +2,61 @@
 
 CommodityPiper is an automated data engineering pipeline designed to handle the volatile and fragmented data of international commodity trading. It extracts global spot prices for bulk materials, normalizes cross-border forex rates, and loads the cleaned data into a centralized data warehouse. 
 
-This structured data is served via a RESTful backend, providing a clean ingestion point for downstream predictive AI models, time-series forecasting algorithms, and financial analytics.
+This structured data is served via a RESTful backend equipped with an analytics engine, providing a clean ingestion point for downstream predictive AI models, time-series forecasting algorithms, and arbitrage calculations.
 
 ## System Architecture
 
-The pipeline follows a robust Extract, Transform, Load, and Serve pattern designed for scalability and data integrity.
-
-* **Extraction:** Ingests raw market data focusing on international steel and scrap metal markets. It tracks volatile trade routes and pricing hubs globally, including South Africa, India, Turkey, China, the United States, the European Union, and Australia.
-* **Transformation:** Cleanses unstructured inputs and normalizes currency fluctuations to create a unified pricing baseline across major global currencies.
-* **Loading:** Stores the normalized time-series data in a relational PostgreSQL data warehouse using a star schema optimized for fast analytical querying.
-* **Serving:** Exposes the data lake through a FastAPI backend, allowing external AI systems to query the exact historical or real-time spreads needed for prediction models.
+* **Extraction Engine:** Scrapes and ingests raw market data from global pricing hubs including South Africa, India, Turkey, China, the United States, the European Union, and Australia.
+* **Transformation & Analytics:** Cleanses unstructured inputs, normalizes currency fluctuations, and calculates real-time price spreads for cross-border arbitrage.
+* **Loading:** Stores normalized time-series data in a relational PostgreSQL data warehouse using a star schema optimized for fast analytical querying.
+* **Serving:** Exposes the data lake through a FastAPI backend.
+* **Deployment:** Fully containerized using Docker and Docker Compose.
 
 ## Technology Stack
 
-* **Language:** Python 3.x
-* **Framework:** FastAPI
-* **Database:** PostgreSQL
-* **ORM:** SQLAlchemy
-* **Data Processing:** Pandas, Psycopg2
+* **Backend:** Python 3.x, FastAPI
+* **Database:** PostgreSQL, SQLAlchemy, Psycopg2
+* **Infrastructure:** Docker, Docker Compose
+* **Data Processing:** Pandas
 
-## Getting Started
+## Getting Started (Docker)
 
-Follow these steps to set up the data pipeline locally.
-
-### 1. Clone the Repository
+The easiest way to run CommodityPiper is via Docker.
 
 ```bash
 # clone the repository
 git clone [https://github.com/mehe-ran/CommodityPiper.git](https://github.com/mehe-ran/CommodityPiper.git)
 cd CommodityPiper
+
+# build and start the pipeline
+docker-compose up -d
 ```
 
-### 2. Environment Setup
+The API documentation will be instantly available at `http://localhost:8000/docs`.
 
-Create a virtual environment and install the required dependencies.
+## Manual Local Setup
+
+If you prefer to run it outside of Docker:
 
 ```bash
-# create virtual environment
+# create and activate virtual environment
 python -m venv venv
+source venv/bin/activate  # or venv\Scripts\activate on windows
 
-# activate the virtual environment (windows)
-venv\Scripts\activate
-
-# activate the virtual environment (mac/linux)
-source venv/bin/activate
-
-# install pipeline dependencies
+# install dependencies
 pip install -r requirements.txt
 ```
 
-### 3. Database Configuration
-
-You will need a running instance of PostgreSQL. Create a `.env` file in the root directory and add your connection string.
+Ensure you have a local PostgreSQL instance running and create a `.env` file in the root directory with your connection string:
 
 ```text
-# local postgres configuration
 DATABASE_URL=postgresql://username:password@localhost:5432/commoditypiper
 ```
 
-### 4. Running the API
-
-Start the FastAPI server using Uvicorn to verify the connection and serve the endpoints.
-
 ```bash
-# start the server with hot reloading
+# start the server
 uvicorn src.main:app --reload
 ```
-
-The API documentation will be available at `http://127.0.0.1:8000/docs`.
 
 ## Future Roadmap
 
