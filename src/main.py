@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 from . import models, schemas, crud
 from .database import engine, get_db
+from . import extractor
 
 # create database tables
 models.Base.metadata.create_all(bind=engine)
@@ -54,3 +55,8 @@ def read_daily_prices(
     db: Session = Depends(get_db)
 ):
     return crud.get_daily_prices(db, commodity_id=commodity_id, location_id=location_id, skip=skip, limit=limit)
+
+# endpoint to trigger external data extraction pipeline
+@app.post("/extract/")
+def trigger_data_extraction(db: Session = Depends(get_db)):
+    return extractor.fetch_and_store_daily_market_data(db)
