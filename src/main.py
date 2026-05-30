@@ -4,6 +4,7 @@ from typing import List
 from . import models, schemas, crud
 from .database import engine, get_db
 from . import extractor
+from . import analytics
 
 # create database tables
 models.Base.metadata.create_all(bind=engine)
@@ -60,3 +61,8 @@ def read_daily_prices(
 @app.post("/extract/")
 def trigger_data_extraction(db: Session = Depends(get_db)):
     return extractor.fetch_and_store_daily_market_data(db)
+
+# endpoint to calculate price arbitrage spreads between two locations
+@app.get("/analytics/spread")
+def get_market_spread(commodity_id: int, location_a_id: int, location_b_id: int, db: Session = Depends(get_db)):
+    return analytics.calculate_market_spread(db, commodity_id, location_a_id, location_b_id)
