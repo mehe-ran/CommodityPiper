@@ -26,3 +26,22 @@ def calculate_market_spread(db: Session, commodity_id: int, location_a_id: int, 
         "location_b_id": location_b_id,
         "spread_usd": round(spread_usd, 2)
     }
+
+
+# calculate the moving average for a specific market to smooth out daily volatility
+def calculate_moving_average(db: Session, commodity_id: int, location_id: int, days: int = 7):
+    prices = db.query(models.DailyPrice).filter(
+        models.DailyPrice.commodity_id == commodity_id,
+        models.DailyPrice.location_id == location_id
+    ).order_by(models.DailyPrice.date.desc()).limit(days).all()
+
+    if not prices or len(prices) < days:
+        return {"error": f"insufficient data for a {days}-day moving average"}
+
+    avg_price = sum(p.price_usd for p in prices) / len(prices)
+    return {
+        "commodity_id": commodity_id,
+        "location_id": location_id,
+        "days": days,
+        "moving_average_usd": round(avg_price, 2)
+    }
