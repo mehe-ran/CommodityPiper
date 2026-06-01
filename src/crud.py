@@ -48,3 +48,18 @@ def create_commodity(db: Session, commodity: schemas.CommodityCreate):
     db.commit()
     db.refresh(db_commodity)
     return db_commodity
+
+# register a new client and store their token
+def create_api_token(db: Session, client_name: str, token: str):
+    db_token = models.ApiToken(client_name=client_name, token=token)
+    db.add(db_token)
+    db.commit()
+    db.refresh(db_token)
+    return db_token
+
+# check if a token exists and is active
+def validate_token(db: Session, token: str):
+    return db.query(models.ApiToken).filter(
+        models.ApiToken.token == token,
+        models.ApiToken.is_active == 1
+    ).first()
