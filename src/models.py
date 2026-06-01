@@ -38,3 +38,13 @@ class DailyPrice(Base):
     # relationships for easy querying later
     commodity = relationship("Commodity")
     location = relationship("Location")
+
+
+# table to store authorized client api keys
+class ApiToken(Base):
+    __tablename__ = "api_tokens"
+
+    id = Column(Integer, primary_key=True, index=True)
+    client_name = Column(String, unique=True, index=True)
+    token = Column(String, unique=True, index=True)
+    is_active = Column(Integer, default=1)
