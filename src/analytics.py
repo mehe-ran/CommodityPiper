@@ -1,3 +1,4 @@
+import math
 from sqlalchemy.orm import Session
 from . import models
 
@@ -44,4 +45,26 @@ def calculate_moving_average(db: Session, commodity_id: int, location_id: int, d
         "location_id": location_id,
         "days": days,
         "moving_average_usd": round(avg_price, 2)
+    }
+
+
+# calculate market volatility index using standard deviation of recent prices
+def calculate_volatility(db: Session, commodity_id: int, location_id: int, days: int = 30):
+    prices = db.query(models.DailyPrice).filter(
+        models.DailyPrice.commodity_id == commodity_id,
+        models.DailyPrice.location_id == location_id
+    ).order_by(models.DailyPrice.date.desc()).limit(days).all()
+
+    if not prices or len(prices) < 2:
+        return {"error": "insufficient data to calculate volatility"}
+
+    avg_price = sum(p.price_usd for p in prices) / len(prices)
+    variance = sum((p.price_usd - avg_price) ** 2 for p in prices) / len(prices)
+    std_dev = math.sqrt(variance)
+
+    return {
+        "commodity_id": commodity_id,
+        "location_id": location_id,
+        "days": days,
+        "volatility_index": round(std_dev, 2)
     }
