@@ -66,3 +66,11 @@ def create_price_record(price: schemas.DailyPriceCreate, db: Session = Depends(g
 @app.post("/extract/", dependencies=[Depends(get_current_client)])
 def trigger_data_extraction(db: Session = Depends(get_db)):
     return extractor.fetch_and_store_daily_market_data(db)
+
+@app.get("/analytics/moving-average")
+def get_moving_average(commodity_id: int, location_id: int, days: int = 7, db: Session = Depends(get_db)):
+    return analytics.calculate_moving_average(db, commodity_id, location_id, days)
+
+@app.get("/analytics/volatility")
+def get_market_volatility(commodity_id: int, location_id: int, days: int = 30, db: Session = Depends(get_db)):
+    return analytics.calculate_volatility(db, commodity_id, location_id, days)
