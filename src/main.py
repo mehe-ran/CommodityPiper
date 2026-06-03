@@ -64,8 +64,10 @@ def create_price_record(price: schemas.DailyPriceCreate, db: Session = Depends(g
     return crud.create_daily_price(db=db, price_schema=price)
 
 @app.post("/extract/", dependencies=[Depends(get_current_client)])
-def trigger_data_extraction(db: Session = Depends(get_db)):
-    return extractor.fetch_and_store_daily_market_data(db)
+def trigger_data_extraction(background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+    # offload the heavy scraping task to the background
+    background_tasks.add_task(extractor.fetch_and_store_daily_market_data, db)
+    return {"status": "accepted", "message": "extraction pipeline triggered in background"}
 
 @app.get("/analytics/moving-average")
 def get_moving_average(commodity_id: int, location_id: int, days: int = 7, db: Session = Depends(get_db)):
