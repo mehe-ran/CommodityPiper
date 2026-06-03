@@ -1,4 +1,5 @@
 import random
+import time
 from datetime import date
 from sqlalchemy.orm import Session
 from . import models, crud, schemas
@@ -17,6 +18,7 @@ def fetch_and_store_daily_market_data(db: Session):
     today = date.today()
 
     for loc in locations:
+        time.sleep(2)  # simulate network latency for scraping
         for comm in commodities:
             # simulate a local price and exchange rate volatility
             base_price = random.uniform(200.0, 500.0)
