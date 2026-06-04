@@ -1,8 +1,11 @@
-from fastapi import FastAPI, Depends, HTTPException, status, BackgroundTasks
-from sqlalchemy.orm import Session
+import time
 from typing import List
-from . import models, schemas, crud, extractor, analytics, auth
+from fastapi import FastAPI, Depends, HTTPException, status, BackgroundTasks, Request
+from sqlalchemy.orm import Session
+
+from . import analytics, auth, crud, extractor, models, schemas
 from .database import engine, get_db
+from .logger import logger
 
 # create database tables
 models.Base.metadata.create_all(bind=engine)
@@ -13,6 +16,16 @@ app = FastAPI(
     description="Data pipeline for international commodity trading",
     version="1.1.0"
 )
+
+# middleware to log request processing time
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    start_time = time.time()
+    response = await call_next(request)
+    process_time = (time.time() - start_time) * 1000
+    formatted_process_time = "{0:.2f}".format(process_time)
+    logger.info(f"path={request.url.path} method={request.method} status_code={response.status_code} process_time={formatted_process_time}ms")
+    return response
 
 # dependency to check database for valid token
 def get_current_client(api_key: str = Depends(auth.verify_api_key), db: Session = Depends(get_db)):
@@ -50,6 +63,14 @@ def read_daily_prices(commodity_id: int = None, location_id: int = None, skip: i
 def get_market_spread(commodity_id: int, location_a_id: int, location_b_id: int, db: Session = Depends(get_db)):
     return analytics.calculate_market_spread(db, commodity_id, location_a_id, location_b_id)
 
+@app.get("/analytics/moving-average")
+def get_moving_average(commodity_id: int, location_id: int, days: int = 7, db: Session = Depends(get_db)):
+    return analytics.calculate_moving_average(db, commodity_id, location_id, days)
+
+@app.get("/analytics/volatility")
+def get_market_volatility(commodity_id: int, location_id: int, days: int = 30, db: Session = Depends(get_db)):
+    return analytics.calculate_volatility(db, commodity_id, location_id, days)
+
 # secured write endpoints (require api key)
 @app.post("/locations/", response_model=schemas.Location, dependencies=[Depends(get_current_client)])
 def create_location(location: schemas.LocationCreate, db: Session = Depends(get_db)):
@@ -61,18 +82,4 @@ def create_commodity(commodity: schemas.CommodityCreate, db: Session = Depends(g
 
 @app.post("/prices/", response_model=schemas.DailyPrice, dependencies=[Depends(get_current_client)])
 def create_price_record(price: schemas.DailyPriceCreate, db: Session = Depends(get_db)):
-    return crud.create_daily_price(db=db, price_schema=price)
-
-@app.post("/extract/", dependencies=[Depends(get_current_client)])
-def trigger_data_extraction(background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
-    # offload the heavy scraping task to the background
-    background_tasks.add_task(extractor.fetch_and_store_daily_market_data, db)
-    return {"status": "accepted", "message": "extraction pipeline triggered in background"}
-
-@app.get("/analytics/moving-average")
-def get_moving_average(commodity_id: int, location_id: int, days: int = 7, db: Session = Depends(get_db)):
-    return analytics.calculate_moving_average(db, commodity_id, location_id, days)
-
-@app.get("/analytics/volatility")
-def get_market_volatility(commodity_id: int, location_id: int, days: int = 30, db: Session = Depends(get_db)):
-    return analytics.calculate_volatility(db, commodity_id, location_id, days)
+    return crud.create_
